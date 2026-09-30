@@ -1,0 +1,47 @@
+<section class="intro">
+  <p class="eyebrow">New application</p>
+  <h1>Start with the job posting.</h1>
+  <p class="lede">Paste a supported ATS link or enter the description yourself. You can review everything before a draft is generated.</p>
+</section>
+
+<section class="workspace">
+  <form class="card" [formGroup]="form" (ngSubmit)="submit()">
+    <div class="tabs" aria-label="Job input method">
+      <button type="button" [class.active]="mode() === 'url'" (click)="setMode('url')">Job URL</button>
+      <button type="button" [class.active]="mode() === 'manual'" (click)="setMode('manual')">Paste text</button>
+    </div>
+
+    @if (mode() === 'url') {
+      <label for="url">Public ATS URL</label>
+      <input id="url" type="url" formControlName="url" placeholder="https://boards.greenhouse.io/company/jobs/123" required>
+      <p class="hint">Greenhouse, Lever, Workday, and Ashby will be supported.</p>
+    } @else {
+      <div class="row">
+        <div><label for="title">Job title</label><input id="title" formControlName="title"></div>
+        <div><label for="company">Company</label><input id="company" formControlName="company"></div>
+      </div>
+      <label for="description">Job description</label>
+      <textarea id="description" formControlName="description" rows="12" required></textarea>
+    }
+
+    <button class="primary" type="submit" [disabled]="loading()">
+      {{ loading() ? 'Loading…' : 'Review posting' }}
+    </button>
+    @if (error()) { <p class="error" role="alert">{{ error() }}</p> }
+  </form>
+
+  <article class="card preview">
+    <p class="eyebrow">Preview</p>
+    @if (posting(); as job) {
+      <h2>{{ job.title || 'Untitled role' }}</h2>
+      <p class="company">{{ job.company || 'Company not provided' }} · {{ job.source }}</p>
+      <div class="description">{{ job.description }}</div>
+    } @else {
+      <div class="empty">
+        <span>01</span>
+        <p>Your normalized job posting will appear here.</p>
+      </div>
+    }
+  </article>
+</section>
+

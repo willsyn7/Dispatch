@@ -1,0 +1,21 @@
+# Go
+bin/
+coverage.out
+
+# Node / Angular
+node_modules/
+dist/
+.angular/
+*.tsbuildinfo
+extensions/dist/
+
+# Local configuration and secrets
+.env
+.env.*
+!.env.example
+*.local
+
+# Editors / operating systems
+.idea/
+.vscode/
+.DS_Store

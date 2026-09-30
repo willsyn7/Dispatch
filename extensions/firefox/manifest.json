@@ -1,0 +1,18 @@
+{
+  "manifest_version": 3,
+  "name": "Job Application Assistant",
+  "version": "0.1.0",
+  "description": "Send the current job posting URL to your personal workspace.",
+  "permissions": ["activeTab"],
+  "action": {
+    "default_title": "Capture job URL",
+    "default_popup": "popup.html"
+  },
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "job-application-assistant@example.local",
+      "strict_min_version": "109.0"
+    }
+  }
+}
+

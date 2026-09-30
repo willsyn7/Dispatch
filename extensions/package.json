@@ -1,0 +1,9 @@
+{
+  "name": "job-application-assistant-extensions",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "build": "node build.mjs"
+  }
+}
+
