@@ -2,11 +2,14 @@ package service
 
 import (
 	"context"
+	"crypto/sha256"
 	"errors"
+	"fmt"
 	"strings"
 	"time"
 
 	"github.com/example/job-application-assistant/apps/api/internal/ats"
+	"github.com/example/job-application-assistant/apps/api/internal/cache"
 	"github.com/example/job-application-assistant/apps/api/internal/domain"
 )
 
@@ -18,15 +21,30 @@ type JobResolver interface {
 
 type JobService struct {
 	resolver JobResolver
+	cache    cache.Store
 }
 
-func NewJobService(resolver JobResolver) *JobService {
-	return &JobService{resolver: resolver}
+func NewJobService(resolver JobResolver, stores ...cache.Store) *JobService {
+	var store cache.Store = cache.Noop{}
+	if len(stores) > 0 && stores[0] != nil {
+		store = stores[0]
+	}
+	return &JobService{resolver: resolver, cache: store}
 }
 
 func (s *JobService) Resolve(ctx context.Context, rawURL, title, company, description string) (domain.JobPosting, error) {
 	if strings.TrimSpace(rawURL) != "" {
-		return s.resolver.Resolve(ctx, rawURL)
+		key := fmt.Sprintf("jobposting:url:%x", sha256.Sum256([]byte(strings.TrimSpace(rawURL))))
+		var posting domain.JobPosting
+		if found, _ := s.cache.Get(ctx, key, &posting); found {
+			return posting, nil
+		}
+		posting, err := s.resolver.Resolve(ctx, rawURL)
+		if err != nil {
+			return domain.JobPosting{}, err
+		}
+		_ = s.cache.Set(ctx, key, posting, 12*time.Hour)
+		return posting, nil
 	}
 	if strings.TrimSpace(description) == "" {
 		return domain.JobPosting{}, ErrMissingJobInput

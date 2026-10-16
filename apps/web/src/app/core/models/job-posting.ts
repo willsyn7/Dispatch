@@ -16,3 +16,21 @@ export interface ResolveJobRequest {
   description?: string;
 }
 
+export interface Profile {
+  id: string;
+  userId: string;
+  version: string;
+  resumeText: string;
+  background?: string;
+  updatedAt: string;
+}
+
+export interface Draft {
+  id: string;
+  applicationId: string;
+  version: number;
+  profileVersion: string;
+  coverLetter: string;
+  matchSummary: string;
+  createdAt: string;
+}

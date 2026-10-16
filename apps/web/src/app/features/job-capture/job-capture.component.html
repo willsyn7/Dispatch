@@ -4,6 +4,20 @@
   <p class="lede">Paste a supported ATS link or enter the description yourself. You can review everything before a draft is generated.</p>
 </section>
 
+<details class="profile card">
+  <summary>
+    <span><strong>Candidate profile</strong><small>{{ profileSaved() ? 'Saved and ready for drafting' : 'Add your resume before drafting' }}</small></span>
+    <span class="status" [class.ready]="profileSaved()">{{ profileSaved() ? 'Ready' : 'Required' }}</span>
+  </summary>
+  <form [formGroup]="profileForm" (ngSubmit)="saveProfile()">
+    <label for="resume">Resume text</label>
+    <textarea id="resume" formControlName="resumeText" rows="10" required></textarea>
+    <label for="background">Additional background</label>
+    <textarea id="background" formControlName="background" rows="4" placeholder="Optional context, preferences, or experience not captured in the resume"></textarea>
+    <button class="secondary" type="submit" [disabled]="savingProfile()">{{ savingProfile() ? 'Saving…' : 'Save profile' }}</button>
+  </form>
+</details>
+
 <section class="workspace">
   <form class="card" [formGroup]="form" (ngSubmit)="submit()">
     <div class="tabs" aria-label="Job input method">
@@ -36,6 +50,9 @@
       <h2>{{ job.title || 'Untitled role' }}</h2>
       <p class="company">{{ job.company || 'Company not provided' }} · {{ job.source }}</p>
       <div class="description">{{ job.description }}</div>
+      <button class="primary draft-button" type="button" [disabled]="generatingDraft()" (click)="generateDraft()">
+        {{ generatingDraft() ? 'Drafting…' : 'Generate cover letter' }}
+      </button>
     } @else {
       <div class="empty">
         <span>01</span>
@@ -45,3 +62,15 @@
   </article>
 </section>
 
+@if (draft(); as result) {
+  <section class="draft card">
+    <div>
+      <p class="eyebrow">Fit summary</p>
+      <p class="summary">{{ result.matchSummary }}</p>
+    </div>
+    <div>
+      <p class="eyebrow">Cover letter draft</p>
+      <div class="letter">{{ result.coverLetter }}</div>
+    </div>
+  </section>
+}

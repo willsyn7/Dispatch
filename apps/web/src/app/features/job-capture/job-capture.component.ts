@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, Component, OnInit, inject, signal } from '@ang
 import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import { JobApiService } from '../../core/job-api.service';
-import { JobPosting } from '../../core/models/job-posting';
+import { Draft, JobPosting } from '../../core/models/job-posting';
 
 @Component({
   selector: 'app-job-capture',
@@ -17,6 +17,10 @@ export class JobCaptureComponent implements OnInit {
   readonly posting = signal<JobPosting | null>(null);
   readonly error = signal('');
   readonly loading = signal(false);
+  readonly savingProfile = signal(false);
+  readonly generatingDraft = signal(false);
+  readonly profileSaved = signal(false);
+  readonly draft = signal<Draft | null>(null);
   readonly mode = signal<'url' | 'manual'>('url');
 
   readonly form = new FormGroup({
@@ -26,11 +30,23 @@ export class JobCaptureComponent implements OnInit {
     description: new FormControl('', { nonNullable: true })
   });
 
+  readonly profileForm = new FormGroup({
+    resumeText: new FormControl('', { nonNullable: true }),
+    background: new FormControl('', { nonNullable: true })
+  });
+
   ngOnInit(): void {
     const capturedURL = this.route.snapshot.queryParamMap.get('jobUrl');
     if (capturedURL) {
       this.form.controls.url.setValue(capturedURL);
     }
+    this.api.getProfile().subscribe({
+      next: profile => {
+        this.profileForm.setValue({ resumeText: profile.resumeText, background: profile.background ?? '' });
+        this.profileSaved.set(true);
+      },
+      error: () => undefined
+    });
   }
 
   setMode(mode: 'url' | 'manual'): void {
@@ -55,6 +71,27 @@ export class JobCaptureComponent implements OnInit {
         this.error.set(response.error?.error ?? 'The job posting could not be loaded.');
         this.loading.set(false);
       }
+    });
+  }
+
+  saveProfile(): void {
+    const profile = this.profileForm.getRawValue();
+    this.savingProfile.set(true);
+    this.error.set('');
+    this.api.saveProfile(profile.resumeText, profile.background).subscribe({
+      next: () => { this.profileSaved.set(true); this.savingProfile.set(false); },
+      error: response => { this.error.set(response.error?.error ?? 'The profile could not be saved.'); this.savingProfile.set(false); }
+    });
+  }
+
+  generateDraft(): void {
+    const posting = this.posting();
+    if (!posting) return;
+    this.generatingDraft.set(true);
+    this.error.set('');
+    this.api.generateDraft(posting).subscribe({
+      next: draft => { this.draft.set(draft); this.generatingDraft.set(false); },
+      error: response => { this.error.set(response.error?.error ?? 'The draft could not be generated.'); this.generatingDraft.set(false); }
     });
   }
 }
